@@ -104,17 +104,18 @@ uint8_t appv_measures_enabled = 1;
 // contains a counter incremented after each data sent
 uint32_t appvCounter = 0;
 
-// contains the temperature level
-double appvTimestamp = 0;
-double appvEcart = 0;
+
+double appvTSApres = 0;
+double appvTSAvant = 0;
 
 
 /// Set of Collected data (published on a data stream)
 LiveObjectsD_Data_t appv_set_measures[] = {
-        {LOD_TYPE_UINT8,  "counter",   &appvCounter,   1},
-        {LOD_TYPE_DOUBLE, "timestamp", &appvTimestamp, 1},
-        {LOD_TYPE_DOUBLE, "ecart",     &appvEcart,     1}
+        {LOD_TYPE_UINT8,  "counter",         &appvCounter, 1},
+        {LOD_TYPE_DOUBLE, "Timestamp Avant", &appvTSAvant, 1},
+        {LOD_TYPE_DOUBLE, "Timestamp Apres", &appvTSApres, 1}
 };
+
 #define SET_MEASURES_NB (sizeof(appv_set_measures) / sizeof(LiveObjectsD_Data_t))
 
 
@@ -594,76 +595,64 @@ bool mqtt_start(void *ctx) {
     // Attach my local RESOURCES to the LiveObjects Client instance
     // ------------------------------------------------------------
     ret = LiveObjectsClient_AttachResources(appv_set_resources, SET_RESOURCES_NB, main_cb_rsc_ntfy, main_cb_rsc_data);
-    if (ret) {
-        ;//       std::cout << " !!! ERROR (" << ret << ") to attach RESOURCES !" << std::endl;
+    if (ret) { ;//       std::cout << " !!! ERROR (" << ret << ") to attach RESOURCES !" << std::endl;
     }
-    else {
-        ;//      std::cout << "mqtt_start: LiveObjectsClient_AttachResources -> OK" << std::endl;
+    else { ;//      std::cout << "mqtt_start: LiveObjectsClient_AttachResources -> OK" << std::endl;
     }
 
     // Attach my local Configuration Parameters to the LiveObjects Client instance
     // ----------------------------------------------------------------------------
     ret = LiveObjectsClient_AttachCfgParams(appv_set_param, SET_PARAM_NB, main_cb_param_udp);
-    if (ret) {
-        ;//      std::cout << " !!! ERROR (" << ret << ") to attach Config Parameters !" << std::endl;
+    if (ret) { ;//      std::cout << " !!! ERROR (" << ret << ") to attach Config Parameters !" << std::endl;
     }
-    else {
-        ;//       std::cout << "mqtt_start: LiveObjectsClient_AttachCfgParams -> OK" << std::endl;
+    else { ;//       std::cout << "mqtt_start: LiveObjectsClient_AttachCfgParams -> OK" << std::endl;
     }
 
     // Attach my local STATUS data to the LiveObjects Client instance
     // --------------------------------------------------------------
     appv_hdl_status = LiveObjectsClient_AttachStatus(appv_set_status, SET_STATUS_NB);
-    if (appv_hdl_status)
-        ;//      std::cout << " !!! ERROR (" << appv_hdl_status << ") to attach status !" << std::endl;
-    else
-        ;//      std::cout << "mqtt_start: LiveObjectsClient_AttachStatus -> OK" << std::endl;
+    if (appv_hdl_status);//      std::cout << " !!! ERROR (" << appv_hdl_status << ") to attach status !" << std::endl;
+    else;//      std::cout << "mqtt_start: LiveObjectsClient_AttachStatus -> OK" << std::endl;
 
     // Attach one set of collected data to the LiveObjects Client instance
     // --------------------------------------------------------------------
     appv_hdl_data = LiveObjectsClient_AttachData(STREAM_PREFIX, "MesureLatence", "mV1", "\"Test\"", NULL,
                                                  appv_set_measures, SET_MEASURES_NB);
-    if (appv_hdl_data < 0) {
-        ;//     std::cout << " !!! ERROR (" << appv_hdl_data << ") to attach a collected data stream !" << std::endl;
+    if (appv_hdl_data <
+        0) { ;//     std::cout << " !!! ERROR (" << appv_hdl_data << ") to attach a collected data stream !" << std::endl;
     }
-    else {
-        ;//      std::cout << "mqtt_start: LiveObjectsClient_AttachData -> OK " << std::endl;
+    else { ;//      std::cout << "mqtt_start: LiveObjectsClient_AttachData -> OK " << std::endl;
     }
 
     // Attach a set of commands to the LiveObjects Client instance
     // -----------------------------------------------------------
     ret = LiveObjectsClient_AttachCommands(appv_set_commands, SET_COMMANDS_NB, main_cb_command);
-    if (ret < 0) {
-        ;//    std::cout << " !!! ERROR (" << ret << ") to attach a set of commands !" << std::endl;
+    if (ret < 0) { ;//    std::cout << " !!! ERROR (" << ret << ") to attach a set of commands !" << std::endl;
     }
-    else {
-        ;//    std::cout << "mqtt_start: LiveObjectsClient_AttachCommands -> OK" << std::endl;
+    else { ;//    std::cout << "mqtt_start: LiveObjectsClient_AttachCommands -> OK" << std::endl;
     }
 
     // Enable the receipt of commands
     ret = LiveObjectsClient_ControlCommands(true);
-    if (ret < 0) {
-        ;//    std::cout << " !!! ERROR (" << ret << ") to enable the receipt of commands !" << std::endl;
+    if (ret < 0) { ;//    std::cout << " !!! ERROR (" << ret << ") to enable the receipt of commands !" << std::endl;
     }
 
     // Enable the receipt of resource update requests
     ret = LiveObjectsClient_ControlResources(true);
-    if (ret < 0) {
-        ;//     std::cout << " !!! ERROR (" << ret << ") to enable the receipt of resource update request " << std::endl;
+    if (ret <
+        0) { ;//     std::cout << " !!! ERROR (" << ret << ") to enable the receipt of resource update request " << std::endl;
     }
 
     // Connect to the LiveObjects Platform
     // -----------------------------------
     std::cout << "mqtt_start: LiveObjectsClient_Connect ..." << std::endl;
     ret = LiveObjectsClient_Connect();
-    if (ret) {
-        ;//    std::cout << "mqtt_start: ERROR returned by LiveObjectsClient_Connect" << std::endl;
+    if (ret) { ;//    std::cout << "mqtt_start: ERROR returned by LiveObjectsClient_Connect" << std::endl;
         return false;
     }
 
     ret = LiveObjectsClient_PushStatus(appv_hdl_status);
-    if (ret) {
-        ;//    std::cout << "mqtt_start: ERROR returned by LiveObjectsClient_PushStatus" << std::endl;
+    if (ret) { ;//    std::cout << "mqtt_start: ERROR returned by LiveObjectsClient_PushStatus" << std::endl;
     }
 
     std::cout << "mqtt_start: OK" << std::endl;
@@ -696,30 +685,28 @@ int main() {
     if (mqtt_start(NULL)) {
         while (digitalRead(READY));   //attend LOW
 
-        digitalWrite(COMMANDE, LOW);    // demande d'emission LoRa
+        digitalWrite(COMMANDE, LOW);
         auto pointMesure1 = std::chrono::system_clock::now();    // premier point de mesure
         std::cout << "Début chronometre !" << std::endl;
-
         while (digitalRead(LECTURE));   //attend LOW fin de transmission
+        //  auto pointMesure2 = std::chrono::system_clock::now();    // deuxieme point de mesure
+        //  auto TimestampAvant = std::chrono::duration<double>(pointMesure2 - pointMesure1);    // défini la durée du traitement
+        auto TimestampAvant = std::chrono::duration<double>(
+                pointMesure1.time_since_epoch());    // défini la durée du traitement
 
-        auto pointMesure2 = std::chrono::system_clock::now();    // deuxieme point de mesure
-        auto ecart = std::chrono::duration<double>(pointMesure2 - pointMesure1);    // défini la durée du traitement
-
-        appvEcart = ecart.count();
-        auto toutDeSuite = std::chrono::system_clock::now();     // génération du timestamp
+        appvTSAvant = TimestampAvant.count();
+        auto toutDeSuite = std::chrono::system_clock::now();
         auto convertion = std::chrono::duration<double>(toutDeSuite.time_since_epoch());
 
-        appvTimestamp = convertion.count();
-        appvEcart = ecart.count();
+        appvTSApres = convertion.count();
+        appvTSAvant = TimestampAvant.count();
 
         appli_sched();
-        LiveObjectsClient_Cycle(1);     // Lance un cycle d'émission mqtt
+        LiveObjectsClient_Cycle(1);
 
-        /**
-         * Affichages avant la cloture du programme
-         */
-        std::cout << "Ecart : " << std::fixed << appvEcart << std::endl;
-        std::cout << "Timestamp : " << std::fixed << appvTimestamp << std::endl;
+        std::cout << "Timestamp Avant : " << std::fixed << appvTSAvant << std::endl;
+        std::cout << "Timestamp Apres: " << std::fixed << appvTSApres << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
         std::cout << "Fin programme : " << std::endl;
     }
     return 0;
